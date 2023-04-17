@@ -1,10 +1,9 @@
-import pygit2
 import os
 import subprocess
 
 def get_repo_gh(url, branch=None, folder="input"):
-    user = url.split('/')[-2]
-    name = url.split('/')[-1]
+    user = url.split(":")[1].split('/')[-2]
+    name = url.split(":")[1].split('/')[-1]
 
     # We check the folder for the user, we create it
     user_folder = os.path.join(folder, user)

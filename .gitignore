@@ -1,0 +1,7 @@
+# Carpetas generadas por el programa
+input/*
+output/*
+fisop/*
+
+# cache stuff
+__pychache__/*
