@@ -1,8 +1,10 @@
+from typing import BinaryIO
 from get_git_repo import get_repo_gh
 import subprocess
 import argparse
 from os import mkdir, path, getcwd
 import traceback
+from progressbar2 import progressbar
 
 
 class Grade:
@@ -20,29 +22,30 @@ class Grade:
         self.test_err = test_err
 
 def grade_alumno(url_github, tests_folder) -> Grade:
-    folder = get_repo_gh(url_github, "entrega_fork") + "/fork"
+    folder = get_repo_gh(url_github, "entrega_fork")
     subprocess.run(["make", "clean"], cwd=folder, capture_output=True)
     build_res = subprocess.run(["make"], cwd=folder, capture_output=True)
     
     test_res = subprocess.run(
-        ["python", "test-fork", path.join(getcwd(),folder)], 
+        ["python", "test-fork", path.join(getcwd(),folder), "-v"], 
         cwd=tests_folder + "/fork",
         capture_output=True
     )
-    name = folder.split("/")[-2]
+    name = folder.split("/")[-1]
     return Grade(name, build_res.stdout, build_res.stderr, test_res.stdout, test_res.stderr)
 
-def outpute_grade(grade: Grade):
-    filename = "output/" + grade.name + ".out"
-    with open(filename, "wb+") as file:
-        file.write(b"#####\nBuild Out\n")
-        file.write(grade.build_out)
-        file.write(b"#####\nBuild Err\n")
-        file.write(grade.build_err)
-        file.write(b"#####\nTest Out\n")
-        file.write(grade.test_out)
-        file.write(b"#####\nTest Err\n")
-        file.write(grade.test_err)
+def outpute_grade(grade: Grade, file: BinaryIO):
+    file.write(b"############################\n")
+    file.write(f"#####  {grade.name}   ######\n".encode())
+    file.write(b"############################\n")
+    file.write(b"#####\nBuild Out\n")
+    file.write(grade.build_out)
+    file.write(b"#####\nBuild Err\n")
+    file.write(grade.build_err)
+    file.write(b"#####\nTest Out\n")
+    file.write(grade.test_out)
+    file.write(b"#####\nTest Err\n")
+    file.write(grade.test_err)
 
 
 def main(lab_tests_folder=None, alumno=None):
@@ -63,8 +66,7 @@ def main(lab_tests_folder=None, alumno=None):
     if not path.exists("output"):
         mkdir("output")
 
-
-    for alumno in input:
+    for alumno in progressbar(input):
         try:
             output.append(grade_alumno("git@github.com:" + alumno, lab_tests_folder))
         except Exception as e:
@@ -72,8 +74,9 @@ def main(lab_tests_folder=None, alumno=None):
             print(traceback.format_exc())
             
 
-    for out in output:
-        outpute_grade(out)
+    with open("output/grade_fork.out", "wb+") as file:
+        for out in output:
+            outpute_grade(out, file)
 
 
 if __name__ == "__main__":

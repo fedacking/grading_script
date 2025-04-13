@@ -15,15 +15,15 @@ def get_repo_gh(url, branch=None, folder="input"):
 
     # We download if it does
     if not os.path.exists(repo_folder) or len(os.listdir(repo_folder)) == 0:
-        subprocess.run(["git", "clone", url, repo_folder])
+        subprocess.run(["git", "clone", url, repo_folder], capture_output=True)
 
     # We update if it does not
     else:
-        subprocess.run(["git", "pull"], cwd=repo_folder)
+        subprocess.run(["git", "pull"], cwd=repo_folder, capture_output=True)
     
 
     # If branch, we go to that branch
     if branch != None:
-        subprocess.run(["git", "checkout", branch], cwd=repo_folder)
+        subprocess.run(["git", "checkout", branch], cwd=repo_folder, capture_output=True)
 
     return repo_folder
